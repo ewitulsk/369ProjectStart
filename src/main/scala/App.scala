@@ -13,6 +13,20 @@ import scala.collection.{Iterable, _}
 
 object App {
 
+  //This is a non-distributed (non RDD) function
+  def calc_tf(word_list: List[String]) ={
+    word_list.map(word => (word -> (word_list.count(x => x == word) / word_list.length)))
+  }
+
+
+  def count_word_in_doc(word: String, doc: List[String]) = {
+    doc.count(x => x == word)
+  }
+
+  def count_word_in_RDD(word: String, rdd: RDD[(String, String, String, List[String])]) = {
+    rdd.aggregate(0, (acc: Int, next: ) => if(next == word){acc+1})
+  }
+
 
   def main(args: Array[String]): Unit = {
     Logger.getLogger("org").setLevel(Level.OFF)
@@ -35,7 +49,16 @@ object App {
         lyrics.split(" ").filter(word => !remove_map.contains(word.toLowerCase.replaceAll("[?!a-z]", ""))).mkString(" "))})
 
 
-    
+
+    //Build IDF mapping for every document
+    val idf_quotient_mapping = lyrics_rdd.map(
+      {case (line, song, artists, lyrics) => (line, song, artists,
+        lyrics.map(word => (word)))
+    })
+
+
+
+
 
 
     lyrics_rdd.saveAsTextFile("./lyrics_filtered")
