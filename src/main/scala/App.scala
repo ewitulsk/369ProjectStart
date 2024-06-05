@@ -20,6 +20,20 @@ object App {
     word_list.map(word => (word, (word_list.count(x => x == word).toDouble / (word_list.length.toDouble))))
   }
 
+  def dot_product(v1: Array[Double], v2: Array[Double]) = {
+    for (a <- 0 to v1.length){
+
+    }
+  }
+
+  def calc_magnitude(v: Array[Double]) = {
+    Math.sqrt(v.map(x => x * x).sum)
+  }
+
+  def calc_cosign(v1: Array[Double], v2: Array[Double]) = {
+//    v1.map()
+  }
+
   def main(args: Array[String]): Unit = {
     Logger.getLogger("org").setLevel(Level.OFF)
     Logger.getLogger("akka").setLevel(Level.OFF)
@@ -72,9 +86,6 @@ object App {
     //This calculates the IDF for every word.
     val idf = document_frequency.map({case (word, df) => (word, Math.log(num_songs.toDouble/df.toDouble))})
 
-    //List of unique words
-    val uniqueWords = document_frequency.map({case (key, value) => key})
-
     //Collect the IDFs as a map so we can reference their values easily
     val idf_map = idf.map({case (key, value) => (key -> value)}).collectAsMap()
 
@@ -85,11 +96,48 @@ object App {
       .map({case (song, lyrics_tf_set) => (song,
         lyrics_tf_set
         .map({case (word, tf) => (word, tf, idf_map.get(word))})
-        //.map({case (word, tf, Some(df)) => (word, tf, df)})
+        .map({case (word, tf, Some(df)) => (word, tf, df)})
           )}).collect()
 
+//
 
-    word_tf_idf.foreach(x => {
+
+
+    //val freq_map = document_frequency.collect().toMap
+
+
+    val song_vectors = word_tf_idf.map({case (song, lyrics) => (song,
+      lyrics.map({case (word, tf, idf) => (word, (tf * idf))})
+    )})
+
+
+
+
+    //Attempt at building the vector space
+//    val collected_doc_freq = document_frequency.collect()
+//
+//    val joined_ = song_vectors.map({case (song, lyrics_tfidf_lst) => (song,
+//      {
+//        val join_lookup = lyrics_tfidf_lst.toMap
+//          collected_doc_freq
+//          .map({ case (word, freq) => (join_lookup.get(word))})
+//          .map({
+//            case (Some(v)) => v
+//            case (None) => 0
+//          })
+//      }
+//
+//    )})
+
+
+
+
+
+
+
+
+
+    joined_.foreach(x => {
       val song_name = x._1
       val song_tf_idf_lst = x._2
       println(song_name)
