@@ -31,6 +31,12 @@ object App {
   }
 
   def calc_cosign(doc_map_1: Map[String, Double], doc_map_2: Map[String, Double]) = {
+    //This is a wierd way of doing the dot product, but it works.
+    //So, for every value in map_1, we get the corresponding value in map_2
+    //If the value isn't in map_2, include it as a 0
+    //If the value is in map_2 and not map_1, then don't include it
+    //Not including a value would be the same as putting a zero
+    //then, simply sum the list
     val dot_product = doc_map_1
       .map({case (k, v) => (k, (v, doc_map_2.get(k)))})
       .map({
