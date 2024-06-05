@@ -46,21 +46,21 @@ object App {
 
 
 
-    val lyrics_standalone_rdd = lyrics_rdd.map({case (a, b, c, lyrics) => lyrics})
+    val lyrics_standalone_rdd = lyrics_rdd.map({case (a, b, c, lyrics) => lyrics.map(x=>x.toLowerCase())})
 
-    
+
+
     //  List[[WORD -> COUNT]]
     val lyrics_freq_map = lyrics_standalone_rdd.map(lyrics => word_frequencies(lyrics)).persist(StorageLevel.MEMORY_ONLY)
 
-   lyrics_standalone_rdd.map(lyric => lyric.map(word => ))
+    //List[Set[String]]
+    val setOfWords = lyrics_standalone_rdd.map(song => song.toSet)
+    val wordPairs = setOfWords.flatMap(songSet => songSet.map(word => (word, 1)))
+    val idf_quotient = wordPairs.reduceByKey(_+_)
 
-    //val lyrics_tf = lyrics_standalone_rdd.map(lyric => calc_tf(lyric))
+    idf_quotient.foreach(println)
 
-
-    //val list_of_word_to_count = lyrics_standalone_rdd.map(lyrics => calc_tf(lyrics))
-
-
-    //lyrics_rdd.saveAsTextFile("./lyrics_filtered")
+    //lyrics_standalone_rdd.map(x=>x.mkString(" ")).saveAsTextFile("./lyrics_filtered")
 
 
 
