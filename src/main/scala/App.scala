@@ -26,12 +26,22 @@ object App {
     }
   }
 
-  def calc_magnitude(v: Array[Double]) = {
+  def calc_magnitude(v: List[Double]) = {
     Math.sqrt(v.map(x => x * x).sum)
   }
 
-  def calc_cosign(v1: Array[Double], v2: Array[Double]) = {
-//    v1.map()
+  def calc_cosign(doc_map_1: Map[String, Double], doc_map_2: Map[String, Double]) = {
+    val dot_product = doc_map_1
+      .map({case (k, v) => (k, (v, doc_map_2.get(k)))})
+      .map({
+        case (k, (v1, Some(v2))) => (v1 * v2)
+        case (k, (v1, None)) => (0)
+      }).sum
+
+    val v1 = doc_map_1.map({case (k, v) => v}).toList
+    val v2 = doc_map_2.map({case (k, v) => v}).toList
+
+    dot_product / (calc_magnitude(v1) * calc_magnitude(v2))
   }
 
   def main(args: Array[String]): Unit = {
@@ -97,7 +107,7 @@ object App {
         lyrics_tf_set
         .map({case (word, tf) => (word, tf, idf_map.get(word))})
         .map({case (word, tf, Some(df)) => (word, tf, df)})
-          )}).collect()
+          )})
 
 //
 
@@ -111,50 +121,38 @@ object App {
     )})
 
 
+    val collected_song_vectors = song_vectors.collect()
+
+//    song_vectors.foreach(x => {
+//      val song_name = x._1
+//      val song_tf_idf_lst = x._2
+//      println(song_name)
+//      song_tf_idf_lst.foreach(println)
+//    })
 
 
-    //Attempt at building the vector space
-//    val collected_doc_freq = document_frequency.collect()
-//
-//    val joined_ = song_vectors.map({case (song, lyrics_tfidf_lst) => (song,
-//      {
-//        val join_lookup = lyrics_tfidf_lst.toMap
-//          collected_doc_freq
-//          .map({ case (word, freq) => (join_lookup.get(word))})
-//          .map({
-//            case (Some(v)) => v
-//            case (None) => 0
-//          })
-//      }
-//
-//    )})
+    val TARGET_SONG = collected_song_vectors(0)
+    println("TARGET SONG: "+TARGET_SONG._1)
+    val target_lyrics_as_map = TARGET_SONG._2.toMap
+   // println(target_lyrics_as_map)
 
 
+    val COMP_SONG = collected_song_vectors(0)
+    val comp_lyrics_as_map = COMP_SONG._2.toMap
+
+    val similar = song_vectors
+      .map({case (song, lyrics) => (song, calc_cosign(target_lyrics_as_map, lyrics.toMap))})
+      .sortBy(x => -x._2)
 
 
+    val top_10_similar = similar.take(10)
 
-
-
-
-
-    joined_.foreach(x => {
-      val song_name = x._1
-      val song_tf_idf_lst = x._2
-      println(song_name)
-      song_tf_idf_lst.foreach(println)
-    })
+    top_10_similar.foreach(println)
 
 
 
 
-  //When you run this you'll notice that the last song has WAYYYY less lyrics than it's supposed to
-  //That is because I naively assumed that the CSV would have commas only where we wanted to split the data
-  //Thats not the case, it is valid CSV to have ("data", "data", ["data1, "data2"], "data)
-  //So simply splitting on commas is not going to give us accurate results
 
-  //However, thats a problem with the data set and its ingress
-
-  //This still calculates TF and IDF correctly.
 
   }
 
