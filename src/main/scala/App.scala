@@ -14,19 +14,13 @@ import scala.collection.{Iterable, _}
 object App {
 
   //This is a non-distributed (non RDD) function
-  def calc_tf(word_list: List[String]) ={
-    word_list.map(word => (word -> (word_list.count(x => x == word) / word_list.length)))
+  def calc_tf(word_list: Array[String]) = {
+    word_list.map(word => (word, 1)).groupBy(_._1).map( { case (key, values) => (key, ((values.map(_._2).sum.toDouble)/word_list.length.toDouble))}  )
   }
 
-
-  def count_word_in_doc(word: String, doc: List[String]) = {
-    doc.count(x => x == word)
+  def word_frequencies(word_list: Array[String]) ={
+    (word_list.map(word => (word -> (word_list.count(x => x == word))))).toMap
   }
-
-  def count_word_in_RDD(word: String, rdd: RDD[(String, String, String, List[String])]) = {
-    rdd.aggregate(0, (acc: Int, next: ) => if(next == word){acc+1})
-  }
-
 
   def main(args: Array[String]): Unit = {
     Logger.getLogger("org").setLevel(Level.OFF)
@@ -46,22 +40,27 @@ object App {
       //line, song, artists, lyrics
       .map(line => (line.split(",")(0), line.split(",")(3), line.split(",")(4), line.split(",")(7)))
       .map({case (line, song, artists, lyrics) => (line, song, artists,
-        lyrics.split(" ").filter(word => !remove_map.contains(word.toLowerCase.replaceAll("[?!a-z]", ""))).mkString(" "))})
-
-
-
-    //Build IDF mapping for every document
-    val idf_quotient_mapping = lyrics_rdd.map(
-      {case (line, song, artists, lyrics) => (line, song, artists,
-        lyrics.map(word => (word)))
-    })
+        lyrics.split(" ").filter(word => !remove_map.contains(word.toLowerCase.replaceAll("[?!a-z]", ""))))}).persist(StorageLevel.MEMORY_ONLY)
 
 
 
 
 
+    val lyrics_standalone_rdd = lyrics_rdd.map({case (a, b, c, lyrics) => lyrics})
 
-    lyrics_rdd.saveAsTextFile("./lyrics_filtered")
+    
+    //  List[[WORD -> COUNT]]
+    val lyrics_freq_map = lyrics_standalone_rdd.map(lyrics => word_frequencies(lyrics)).persist(StorageLevel.MEMORY_ONLY)
+
+   lyrics_standalone_rdd.map(lyric => lyric.map(word => ))
+
+    //val lyrics_tf = lyrics_standalone_rdd.map(lyric => calc_tf(lyric))
+
+
+    //val list_of_word_to_count = lyrics_standalone_rdd.map(lyrics => calc_tf(lyrics))
+
+
+    //lyrics_rdd.saveAsTextFile("./lyrics_filtered")
 
 
 
